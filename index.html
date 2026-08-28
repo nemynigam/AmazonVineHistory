@@ -150,7 +150,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12.5px;
-      table-layout: fixed; /* Column width control */
+      table-layout: fixed;
     }
 
     th {
@@ -163,6 +163,29 @@
       letter-spacing: 0.4px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       text-align: left;
+      user-select: none;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      position: relative;
+    }
+
+    th:hover {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    th.sorted-asc, th.sorted-desc {
+      background: #1e293b;
+      color: var(--accent-blue);
+    }
+
+    .sort-icon {
+      margin-left: 4px;
+      font-size: 10px;
+      opacity: 0.5;
+    }
+    th:hover .sort-icon, th.sorted-asc .sort-icon, th.sorted-desc .sort-icon {
+      opacity: 1;
     }
 
     td {
@@ -178,16 +201,15 @@
     /* Fixed Column Widths for Single Screen Fit */
     th:nth-child(1), td:nth-child(1) { width: 9%; }   /* ASIN */
     th:nth-child(2), td:nth-child(2) { width: 33%; white-space: normal; line-height: 1.25; font-size: 12px; } /* Product Title */
-    th:nth-child(3), td:nth-child(3) { width: 7%; text-align: right; }  /* Price */
+    th:nth-child(3), td:nth-child(3) { width: 8%; text-align: right; }  /* Price */
     th:nth-child(4), td:nth-child(4) { width: 9%; text-align: center; } /* Live Status */
     th:nth-child(5), td:nth-child(5) { width: 14%; font-size: 11.5px; } /* First Seen */
     th:nth-child(6), td:nth-child(6) { width: 14%; font-size: 11.5px; } /* Gone Time */
     th:nth-child(7), td:nth-child(7) { width: 7%; text-align: center; } /* Stay Duration */
-    th:nth-child(8), td:nth-child(8) { width: 7%; text-align: center; } /* Amazon Link */
+    th:nth-child(8), td:nth-child(8) { width: 6%; text-align: center; cursor: default; } /* Amazon Link */
 
     tr:hover td { background: rgba(255, 255, 255, 0.035); }
 
-    /* Custom Badges */
     .badge-asin {
       font-family: monospace;
       background: rgba(255, 255, 255, 0.07);
@@ -256,20 +278,24 @@
 
 <div class="container">
 
+  <!-- Top Hero Info -->
   <div class="hero-grid">
     
+    <!-- 1. Total Active Products from Sheet B1 -->
     <div class="hero-card count-card">
       <div class="card-label">🟢 Total Active Products</div>
       <div class="count-display" id="totalActiveCount">--</div>
       <div class="sub-note">Live from Sheet Cell B1</div>
     </div>
 
+    <!-- 2. Last Synced Timestamp from Sheet D1 -->
     <div class="hero-card time-card">
       <div class="card-label">🕒 Last Synced Time</div>
       <div class="time-display" id="lastSyncedTime">--:--:--</div>
       <div class="sub-note">Live from Sheet Cell D1</div>
     </div>
 
+    <!-- 3. System Connection -->
     <div class="hero-card status-area">
       <div class="live-badge">
         <div class="pulse"></div>
@@ -283,6 +309,7 @@
 
   </div>
 
+  <!-- Live Feed Table with Clickable Sort Headers -->
   <div class="table-card">
     <div class="table-top">
       <div style="font-size: 13px; font-weight: 700; color: #e2e8f0;">📦 Live Products Feed (<span id="totalVisibleCount">0</span> items)</div>
@@ -292,14 +319,14 @@
     <table>
       <thead>
         <tr>
-          <th>ASIN</th>
-          <th>Product Title</th>
-          <th style="text-align: right;">Price</th>
-          <th style="text-align: center;">Live Status</th>
-          <th>First Seen (Aaya Kab)</th>
-          <th>Gone Time (Gaya Kab)</th>
-          <th style="text-align: center;">Duration</th>
-          <th style="text-align: center;">Link</th>
+          <th onclick="sortTable('asin')">ASIN <span id="sort-asin" class="sort-icon">⇅</span></th>
+          <th onclick="sortTable('title')">Product Title <span id="sort-title" class="sort-icon">⇅</span></th>
+          <th onclick="sortTable('price')" style="text-align: right;">Price <span id="sort-price" class="sort-icon">⇅</span></th>
+          <th onclick="sortTable('status')" style="text-align: center;">Live Status <span id="sort-status" class="sort-icon">⇅</span></th>
+          <th onclick="sortTable('firstSeenTime')">First Seen (Aaya Kab) <span id="sort-firstSeenTime" class="sort-icon">▼</span></th>
+          <th onclick="sortTable('goneTimeTime')">Gone Time (Gaya Kab) <span id="sort-goneTimeTime" class="sort-icon">⇅</span></th>
+          <th onclick="sortTable('durationSeconds')" style="text-align: center;">Duration <span id="sort-durationSeconds" class="sort-icon">⇅</span></th>
+          <th style="text-align: center; cursor: default;">Link</th>
         </tr>
       </thead>
       <tbody id="productTableBody">
@@ -315,11 +342,50 @@
   const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
   let cachedProducts = [];
+  
+  // Current Sort State (Default: firstSeenTime descending)
+  let currentSortKey = 'firstSeenTime';
+  let currentSortAsc = false;
 
   // Browser Clock
   setInterval(() => {
     document.getElementById("liveClock").innerText = new Date().toLocaleTimeString();
   }, 1000);
+
+  // Helper 1: Date String (DD/MM/YYYY, HH:MM:SS) to Milliseconds
+  function parseDateToTimestamp(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string' || dateStr.trim() === '' || dateStr === '—') return 0;
+    try {
+      const parts = dateStr.split(',');
+      const dateParts = parts[0].trim().split('/');
+      const timeParts = parts[1] ? parts[1].trim().split(':') : ["00", "00", "00"];
+
+      const day = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const year = parseInt(dateParts[2], 10);
+
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = parseInt(timeParts[1], 10);
+      const seconds = parseInt(timeParts[2], 10);
+
+      return new Date(year, month, day, hours, minutes, seconds).getTime() || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // Helper 2: Duration String (e.g. "2s", "28m", "1h 26m") to Seconds
+  function parseDurationToSeconds(durStr) {
+    if (!durStr || typeof durStr !== 'string' || durStr.trim() === '' || durStr === '—') return 0;
+    let totalSec = 0;
+    const hMatch = durStr.match(/(\d+)\s*h/);
+    const mMatch = durStr.match(/(\d+)\s*m/);
+    const sMatch = durStr.match(/(\d+)\s*s/);
+    if (hMatch) totalSec += parseInt(hMatch[1], 10) * 3600;
+    if (mMatch) totalSec += parseInt(mMatch[1], 10) * 60;
+    if (sMatch) totalSec += parseInt(sMatch[1], 10);
+    return totalSec;
+  }
 
   // Live Sheet Data Fetch
   async function fetchLiveData() {
@@ -331,37 +397,96 @@
 
       if (!rawRows || rawRows.length < 2) return;
 
-      // 1. Row 1 se exact B1 aur D1 values nikalo
+      // Row 1 values
       const row1 = rawRows[0].c;
-      const totalActive = row1[1] ? (row1[1].f || row1[1].v) : "--"; // Cell B1
-      const lastSynced = row1[3] ? (row1[3].f || row1[3].v) : (row1[4] ? (row1[4].f || row1[4].v) : "--"); // Cell D1 / E1
+      const totalActive = row1[1] ? (row1[1].f || row1[1].v) : "--";
+      const lastSynced = row1[3] ? (row1[3].f || row1[3].v) : (row1[4] ? (row1[4].f || row1[4].v) : "--");
 
       document.getElementById("totalActiveCount").innerText = totalActive;
       document.getElementById("lastSyncedTime").innerText = lastSynced;
 
-      // 2. Row 3 se aage ka Product Data nikalo (Index 2 onwards)
+      // Extract Products
       const products = [];
       for (let i = 2; i < rawRows.length; i++) {
         const c = rawRows[i].c;
-        if (!c || !c[0]) continue; // Blank row skip
+        if (!c || !c[0]) continue;
         
+        const firstSeenVal = c[4] ? (c[4].f || c[4].v || "") : "";
+        const goneTimeVal = c[5] ? (c[5].f || c[5].v || "—") : "—";
+        const durationVal = c[6] ? (c[6].f || c[6].v || "—") : "—";
+        const priceVal = c[2] ? (c[2].v !== undefined ? c[2].v : c[2].f) : 0;
+
         products.push({
           asin: c[0] ? (c[0].f || c[0].v || "") : "",
           title: c[1] ? (c[1].f || c[1].v || "") : "",
-          price: c[2] ? (c[2].f || c[2].v || "") : "",
+          price: parseFloat(priceVal) || 0,
+          priceFormatted: c[2] ? (c[2].f || c[2].v || "0") : "0",
           status: c[3] ? (c[3].f || c[3].v || "") : "",
-          firstSeen: c[4] ? (c[4].f || c[4].v || "") : "",
-          goneTime: c[5] ? (c[5].f || c[5].v || "—") : "—",
-          duration: c[6] ? (c[6].f || c[6].v || "—") : "—",
+          firstSeen: firstSeenVal,
+          firstSeenTime: parseDateToTimestamp(firstSeenVal),
+          goneTime: goneTimeVal,
+          goneTimeTime: parseDateToTimestamp(goneTimeVal),
+          duration: durationVal,
+          durationSeconds: parseDurationToSeconds(durationVal),
           link: c[7] ? (c[7].f || c[7].v || "") : ""
         });
       }
 
       cachedProducts = products;
-      renderTable(products);
+      applySortingAndRender();
     } catch (err) {
       console.warn("Live fetch error, retrying...", err);
     }
+  }
+
+  // Sorting Handler for Headers
+  function sortTable(key) {
+    if (currentSortKey === key) {
+      currentSortAsc = !currentSortAsc; // Toggle direction
+    } else {
+      currentSortKey = key;
+      // Default to ascending for strings, descending for numbers/dates
+      currentSortAsc = (key === 'asin' || key === 'title' || key === 'status');
+    }
+    updateSortIcons();
+    applySortingAndRender();
+  }
+
+  function updateSortIcons() {
+    // Reset all icons
+    const sortKeys = ['asin', 'title', 'price', 'status', 'firstSeenTime', 'goneTimeTime', 'durationSeconds'];
+    sortKeys.forEach(k => {
+      const el = document.getElementById(`sort-${k}`);
+      if (el) {
+        el.innerText = '⇅';
+        el.parentElement.classList.remove('sorted-asc', 'sorted-desc');
+      }
+    });
+
+    // Set active icon
+    const activeIcon = document.getElementById(`sort-${currentSortKey}`);
+    if (activeIcon) {
+      activeIcon.innerText = currentSortAsc ? '▲' : '▼';
+      activeIcon.parentElement.classList.add(currentSortAsc ? 'sorted-asc' : 'sorted-desc');
+    }
+  }
+
+  function applySortingAndRender() {
+    if (!cachedProducts || cachedProducts.length === 0) return;
+
+    // Sort Array
+    cachedProducts.sort((a, b) => {
+      let valA = a[currentSortKey];
+      let valB = b[currentSortKey];
+
+      if (typeof valA === 'string') {
+        return currentSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      } else {
+        return currentSortAsc ? valA - valB : valB - valA;
+      }
+    });
+
+    renderTable(cachedProducts);
   }
 
   function renderTable(products) {
@@ -371,29 +496,26 @@
     let visibleCount = 0;
 
     products.forEach(p => {
-      // Search Match
       const matches = p.asin.toLowerCase().includes(query) ||
                       p.title.toLowerCase().includes(query) ||
-                      p.status.toLowerCase().includes(query);
+                      p.status.toLowerCase().includes(query) ||
+                      p.firstSeen.toLowerCase().includes(query);
 
       if (matches) {
         visibleCount++;
         
-        // Status Badge Styling
         const isLive = p.status.toUpperCase().includes("ACTIVE");
         const statusClass = isLive ? "status-active" : "status-gone";
         const statusIcon = isLive ? "🟢" : "🔴";
-
-        // Amazon Button Link
         const linkBtn = p.link ? `<a href="${p.link}" target="_blank" class="btn-amazon">Buy ↗</a>` : "—";
 
         html += `
           <tr>
             <td><span class="badge-asin">${p.asin}</span></td>
             <td title="${p.title}">${p.title}</td>
-            <td style="text-align: right;"><span class="badge-price">₹${p.price}</span></td>
+            <td style="text-align: right;"><span class="badge-price">₹${p.priceFormatted}</span></td>
             <td style="text-align: center;"><span class="badge-status ${statusClass}">${statusIcon} ${isLive ? 'ACTIVE' : 'GONE'}</span></td>
-            <td style="color: #94a3b8;">${p.firstSeen}</td>
+            <td>${p.firstSeen}</td>
             <td style="color: #94a3b8;">${p.goneTime}</td>
             <td style="text-align: center;"><span class="badge-duration">${p.duration}</span></td>
             <td style="text-align: center;">${linkBtn}</td>
@@ -410,7 +532,7 @@
     renderTable(cachedProducts);
   }
 
-  // Initial Fetch & 1.5s continuous live polling
+  // Initial Fetch & 1.5s continuous live update
   fetchLiveData();
   setInterval(fetchLiveData, 1500);
 </script>
