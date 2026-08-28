@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Production & Product Monitor</title>
+  <title>⚡ Live Production & Battery Monitor</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #06090e;
+      --bg: #070b13;
       --card-bg: #0f172a;
       --accent-blue: #38bdf8;
       --neon-green: #22c55e;
-      --border-color: rgba(255, 255, 255, 0.1);
+      --neon-purple: #c084fc;
+      --border: rgba(255, 255, 255, 0.08);
       --text-muted: #94a3b8;
     }
 
@@ -19,38 +20,37 @@
     body { background-color: var(--bg); color: #f8fafc; padding: 16px; min-height: 100vh; }
     .container { max-width: 100%; margin: 0 auto; }
 
-    /* Top Live Monitoring Header */
+    /* Top Highlight Stats */
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr;
+      grid-template-columns: 1.4fr 1.4fr 0.8fr;
       gap: 14px;
       margin-bottom: 16px;
     }
 
     .hero-card {
       background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 16px 20px;
+      padding: 16px 22px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     }
 
     .hero-card.count-card {
-      background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(15, 23, 42, 0.9) 100%);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
       border: 1px solid rgba(34, 197, 94, 0.4);
     }
 
     .hero-card.time-card {
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.9) 100%);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
       border: 1px solid rgba(56, 189, 248, 0.4);
     }
 
     .card-label {
-      font-size: 13px;
+      font-size: 12px;
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.8px;
@@ -58,12 +58,12 @@
       margin-bottom: 4px;
     }
 
-    /* Bada Display Font */
+    /* Jumbo Highlights */
     .count-display {
-      font-size: 46px;
+      font-size: 48px;
       font-weight: 900;
       color: var(--neon-green);
-      line-height: 1.1;
+      line-height: 1;
       text-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
     }
 
@@ -72,17 +72,16 @@
       font-weight: 800;
       color: var(--accent-blue);
       line-height: 1.1;
-      text-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+      text-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
     }
 
-    .sub-timing {
-      font-size: 12px;
-      color: #cbd5e1;
-      margin-top: 4px;
+    .sub-note {
+      font-size: 11.5px;
+      color: #94a3b8;
+      margin-top: 6px;
       font-weight: 600;
     }
 
-    /* Live Badge */
     .status-area {
       display: flex;
       flex-direction: column;
@@ -93,19 +92,19 @@
     .live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(34, 197, 94, 0.2);
-      border: 1px solid rgba(34, 197, 94, 0.5);
+      gap: 7px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
       color: #4ade80;
       padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
+      border-radius: 30px;
+      font-size: 12px;
       font-weight: 800;
     }
 
     .pulse {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       background: #22c55e;
       border-radius: 50%;
       animation: pulse-ring 1.5s infinite;
@@ -117,12 +116,13 @@
       100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
-    /* Compact Screen-Fit Table */
+    /* Screen-Fit Table Wrapper (Zero Horizontal Scroll) */
     .table-container {
       background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
+      width: 100%;
     }
 
     .table-header-bar {
@@ -130,13 +130,15 @@
       justify-content: space-between;
       align-items: center;
       padding: 12px 18px;
-      background: #1e293b;
-      border-bottom: 1px solid var(--border-color);
+      background: #172033;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .search-bar {
       background: #090d16;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       padding: 8px 14px;
       border-radius: 8px;
       color: white;
@@ -144,67 +146,63 @@
       width: 220px;
       outline: none;
     }
-
     .search-bar:focus { border-color: var(--accent-blue); }
 
-    /* Auto-fit Table No Scroll */
+    /* Auto Column Sizing - Fits 100% Screen */
     table {
       width: 100%;
-      table-layout: auto;
       border-collapse: collapse;
-      font-size: 12.5px;
+      font-size: 13px;
+      table-layout: auto;
     }
 
     th {
-      background: #172033;
+      background: #111827;
       color: #93c5fd;
-      padding: 10px 12px;
+      padding: 12px 14px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px;
+      font-size: 11.5px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       text-align: left;
     }
 
     td {
-      padding: 9px 12px;
+      padding: 10px 14px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: #e2e8f0;
       word-break: break-word;
       vertical-align: middle;
     }
 
-    /* First row (Latest Item) Animation */
     tbody tr:first-child {
       background: rgba(56, 189, 248, 0.08);
       font-weight: 600;
-      border-left: 3px solid var(--accent-blue);
+      border-left: 4px solid var(--accent-blue);
     }
 
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.04);
-    }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
 
     .chip {
       display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
+      padding: 3px 8px;
+      border-radius: 5px;
       font-weight: 700;
-      font-size: 11px;
+      font-size: 12px;
       background: rgba(56, 189, 248, 0.15);
       color: var(--accent-blue);
     }
 
     .chip-time {
-      background: rgba(168, 85, 247, 0.15);
-      color: #c084fc;
+      background: rgba(192, 132, 252, 0.15);
+      color: var(--neon-purple);
     }
 
     @media (max-width: 900px) {
       .hero-grid { grid-template-columns: 1fr; }
       .count-display { font-size: 38px; }
       .time-display { font-size: 26px; }
-      table { font-size: 11.5px; }
     }
   </style>
 </head>
@@ -212,48 +210,43 @@
 
 <div class="container">
 
-  <!-- Big Hero Monitoring Metrics -->
   <div class="hero-grid">
     
-    <!-- 1. Jumbo Live Product Count -->
     <div class="hero-card count-card">
-      <div class="card-label">📦 Live Product Count</div>
-      <div class="count-display" id="totalCount">0</div>
-      <div class="sub-timing">Total Items Logged in Sheet</div>
+      <div class="card-label">📦 Total Active Product (Sheet Value)</div>
+      <div class="count-display" id="totalCount">--</div>
+      <div class="sub-note">Live value from Google Sheet</div>
     </div>
 
-    <!-- 2. Big Live Sync & Last Product Time -->
     <div class="hero-card time-card">
-      <div class="card-label">⏱️ Last Product Timing</div>
-      <div class="time-display" id="lastProductTime">--:--:--</div>
-      <div class="sub-timing" id="lastSyncAgo">Syncing...</div>
+      <div class="card-label">⏱️ Last Sync Time (Sheet Value)</div>
+      <div class="time-display" id="lastSyncTime">--:--:--</div>
+      <div class="sub-note">Latest timestamp logged in sheet</div>
     </div>
 
-    <!-- 3. System Live Sync Status -->
     <div class="hero-card status-area">
       <div class="live-badge">
         <div class="pulse"></div>
         LIVE SYNC (1.5s)
       </div>
       <div style="text-align: right;">
-        <div style="font-size: 11px; color: var(--text-muted);">CURRENT CLOCK</div>
-        <div id="liveClock" style="font-size: 18px; font-weight: 800; color: #ffffff;">--:--:--</div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">BROWSER CLOCK</div>
+        <div id="liveClock" style="font-size: 16px; font-weight: 800; color: #ffffff;">--:--:--</div>
       </div>
     </div>
 
   </div>
 
-  <!-- Screen-Fit Compact Table -->
   <div class="table-container">
     <div class="table-header-bar">
-      <div style="font-size: 14px; font-weight: 700; color: #e2e8f0;">⚡ Real-Time Product Feed (Newest First)</div>
-      <input type="text" id="searchBox" class="search-bar" placeholder="🔍 Search item / time..." onkeyup="filterRows()">
+      <div style="font-size: 13.5px; font-weight: 700; color: #e2e8f0;">⚡ Live Product Records (Top = Latest)</div>
+      <input type="text" id="searchBox" class="search-bar" placeholder="🔍 Search records..." onkeyup="filterRows()">
     </div>
 
     <table id="mainTable">
       <thead id="tblHead"></thead>
       <tbody id="tblBody">
-        <tr><td colspan="10" style="text-align: center; padding: 25px; color: var(--text-muted);">Connecting to Sheet...</td></tr>
+        <tr><td colspan="10" style="text-align: center; padding: 25px; color: var(--text-muted);">Connecting to Sheet Data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -261,103 +254,133 @@
 </div>
 
 <script>
+  // Sheet ID direct live endpoint (No caching delay)
   const SHEET_ID = "1nzoYDw45bUiZ5dD-q6n78NNpsLufNUDBkgKOQPAAh-M";
   const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-  let cachedData = [];
+  let cachedHeaders = [];
+  let cachedRows = [];
 
-  // Live Digital Clock
+  // Browser Clock
   setInterval(() => {
     document.getElementById("liveClock").innerText = new Date().toLocaleTimeString();
   }, 1000);
 
-  // Fetch Continuous Updates
+  // Live Sheet Data Fetcher
   async function fetchLiveFeed() {
     try {
       const res = await fetch(`${GVIZ_URL}&t=${Date.now()}`);
       const text = await res.text();
       const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
 
-      const cols = json.table.cols.map(c => c ? c.label || "Col" : "Col");
+      // Extract Headers and Matrix Rows
+      const cols = json.table.cols.map(c => c ? c.label || "" : "");
       const rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.f ? cell.f : cell.v) : ""));
 
-      cachedData = [cols, ...rows];
+      cachedHeaders = cols;
+      cachedRows = rows;
       renderDashboard(cols, rows);
-    } catch (e) {
-      console.warn("Retrying fetch...", e);
+    } catch (err) {
+      console.warn("Live fetch error, retrying...", err);
     }
   }
 
   function renderDashboard(headers, rows) {
     if (!rows || rows.length === 0) return;
 
-    // 1. Update Big Product Count
-    document.getElementById("totalCount").innerText = rows.length;
+    let totalActiveVal = null;
+    let lastSyncVal = null;
 
-    // 2. Identify and Sync Timing from Data
-    const lastRow = rows[rows.length - 1]; // Sabse aakhiri entry
-    let detectedTime = "";
+    // 1. JSON में से "Active Product" और "Sync Time" को मैप करें
+    headers.forEach((h, colIdx) => {
+      const head = String(h).toLowerCase().trim();
+      
+      if (head.includes("active") || head.includes("total") || head.includes("count") || head.includes("product")) {
+        // अगर कॉलम में ऊपर या नीचे वैल्यू है तो उसे पिक करें
+        for (let r = rows.length - 1; r >= 0; r--) {
+          if (rows[r][colIdx] !== "" && rows[r][colIdx] !== null && rows[r][colIdx] !== undefined) {
+            totalActiveVal = rows[r][colIdx];
+            break;
+          }
+        }
+      }
 
-    // Timing column auto-detect (AM/PM ya : format)
-    for (let i = 0; i < lastRow.length; i++) {
-      const val = String(lastRow[i]);
-      if (val.includes(":") || val.toLowerCase().includes("am") || val.toLowerCase().includes("pm")) {
-        detectedTime = val;
-        break;
+      if (head.includes("sync") || head.includes("time") || head.includes("date") || head.includes("timestamp")) {
+        for (let r = rows.length - 1; r >= 0; r--) {
+          if (rows[r][colIdx] !== "" && rows[r][colIdx] !== null && rows[r][colIdx] !== undefined) {
+            lastSyncVal = rows[r][colIdx];
+            break;
+          }
+        }
+      }
+    });
+
+    // Fallback: अगर हेडर मैच नहीं हुआ तो लास्ट रो से वैल्यू निकालें
+    if (totalActiveVal === null) {
+      totalActiveVal = rows[rows.length - 1][0] || rows.length;
+    }
+    if (lastSyncVal === null) {
+      const lastRow = rows[rows.length - 1];
+      for (let item of lastRow) {
+        if (String(item).includes(":") || String(item).toLowerCase().includes("am") || String(item).toLowerCase().includes("pm")) {
+          lastSyncVal = item;
+          break;
+        }
       }
     }
 
-    if (detectedTime) {
-      document.getElementById("lastProductTime").innerText = detectedTime;
-      document.getElementById("lastSyncAgo").innerText = "Latest product logged at this timestamp";
-    } else {
-      document.getElementById("lastProductTime").innerText = new Date().toLocaleTimeString();
-      document.getElementById("lastSyncAgo").innerText = "Updated just now";
+    // 2. UI पर सेट करें
+    document.getElementById("totalCount").innerText = totalActiveVal;
+    if (lastSyncVal) {
+      document.getElementById("lastSyncTime").innerText = lastSyncVal;
     }
 
-    // 3. Render Table (No Scroll, Newest First)
+    // 3. Screen-fit Table Render (Newest Row on Top)
+    renderTable(headers, rows);
+  }
+
+  function renderTable(headers, rows) {
     const thead = document.getElementById("tblHead");
     const tbody = document.getElementById("tblBody");
 
     if (thead.innerHTML === "") {
-      let h = "<tr>";
-      headers.forEach(head => h += `<th>${head || '-'}</th>`);
-      h += "</tr>";
-      thead.innerHTML = h;
+      let hHtml = "<tr>";
+      headers.forEach(h => hHtml += `<th>${h || '-'}</th>`);
+      hHtml += "</tr>";
+      thead.innerHTML = hHtml;
     }
 
     const query = document.getElementById("searchBox").value.toLowerCase();
-    let b = "";
+    let bHtml = "";
 
-    // Newest record top par aayega
+    // Newest record sabse upar
     for (let r = rows.length - 1; r >= 0; r--) {
       const row = rows[r];
       if (row.some(cell => String(cell).toLowerCase().includes(query))) {
-        b += "<tr>";
+        bHtml += "<tr>";
         row.forEach(cell => {
-          let v = cell !== null && cell !== undefined ? cell : "";
+          let val = cell !== null && cell !== undefined ? cell : "";
           
-          // Smart formatting for Time & Numbers
-          if (String(v).includes(":") && (String(v).includes("AM") || String(v).includes("PM") || String(v).length <= 11)) {
-            v = `<span class="chip chip-time">⏱️ ${v}</span>`;
-          } else if (typeof v === 'number') {
-            v = `<span class="chip">${v}</span>`;
+          if (String(val).includes(":") && (String(val).includes("AM") || String(val).includes("PM") || String(val).length <= 12)) {
+            val = `<span class="chip chip-time">⏱️ ${val}</span>`;
+          } else if (typeof val === 'number') {
+            val = `<span class="chip">${val}</span>`;
           }
-          b += `<td>${v}</td>`;
+          bHtml += `<td>${val}</td>`;
         });
-        b += "</tr>";
+        bHtml += "</tr>";
       }
     }
-    tbody.innerHTML = b;
+    tbody.innerHTML = bHtml;
   }
 
   function filterRows() {
-    if (cachedData.length > 1) {
-      renderDashboard(cachedData[0], cachedData.slice(1));
+    if (cachedRows.length > 0) {
+      renderTable(cachedHeaders, cachedRows);
     }
   }
 
-  // Initial Fetch & fast 1.5s live polling
+  // Initial Fetch & 1.5s continuous live update
   fetchLiveFeed();
   setInterval(fetchLiveFeed, 1500);
 </script>
