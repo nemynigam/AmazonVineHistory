@@ -3,36 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Live Production & Battery Monitor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <title>Amazon Live Product Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #070b13;
       --card-bg: #0f172a;
       --accent-blue: #38bdf8;
       --neon-green: #22c55e;
+      --neon-red: #ef4444;
       --neon-purple: #c084fc;
       --border: rgba(255, 255, 255, 0.08);
       --text-muted: #94a3b8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background-color: var(--bg); color: #f8fafc; padding: 16px; min-height: 100vh; }
-    .container { max-width: 100%; margin: 0 auto; }
+    body { background-color: var(--bg); color: #f8fafc; padding: 14px 18px; min-height: 100vh; }
+    .container { width: 100%; max-width: 100%; margin: 0 auto; }
 
-    /* Top Highlight Stats */
+    /* Top Metric Banner */
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.4fr 1.4fr 0.8fr;
+      grid-template-columns: 1.2fr 1.4fr 0.8fr;
       gap: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .hero-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 16px 22px;
+      padding: 14px 20px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -50,17 +51,19 @@
     }
 
     .card-label {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.8px;
       color: var(--text-muted);
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* Jumbo Highlights */
     .count-display {
-      font-size: 48px;
+      font-size: 44px;
       font-weight: 900;
       color: var(--neon-green);
       line-height: 1;
@@ -68,19 +71,17 @@
     }
 
     .time-display {
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 800;
       color: var(--accent-blue);
       line-height: 1.1;
-      text-shadow: 0 0 18px rgba(56, 189, 248, 0.35);
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .sub-note {
-      font-size: 11.5px;
-      color: #94a3b8;
-      margin-top: 6px;
-      font-weight: 600;
-    }
+    .sub-note { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
 
     .status-area {
       display: flex;
@@ -92,32 +93,28 @@
     .live-badge {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       background: rgba(34, 197, 94, 0.15);
       border: 1px solid rgba(34, 197, 94, 0.4);
       color: #4ade80;
-      padding: 6px 14px;
-      border-radius: 30px;
+      padding: 5px 12px;
+      border-radius: 20px;
       font-size: 12px;
       font-weight: 800;
     }
 
     .pulse {
-      width: 8px;
-      height: 8px;
-      background: #22c55e;
-      border-radius: 50%;
+      width: 8px; height: 8px; background: #22c55e; border-radius: 50%;
       animation: pulse-ring 1.5s infinite;
     }
-
     @keyframes pulse-ring {
       0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); }
       70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
       100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
-    /* Screen-Fit Table Wrapper (Zero Horizontal Scroll) */
-    .table-container {
+    /* Table Container - Fits Exact Screen */
+    .table-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -125,84 +122,133 @@
       width: 100%;
     }
 
-    .table-header-bar {
+    .table-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 18px;
+      padding: 10px 16px;
       background: #172033;
       border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
       gap: 10px;
     }
 
-    .search-bar {
+    .search-input {
       background: #090d16;
       border: 1px solid var(--border);
-      padding: 8px 14px;
+      padding: 7px 14px;
       border-radius: 8px;
       color: white;
       font-size: 13px;
-      width: 220px;
+      width: 250px;
       outline: none;
     }
-    .search-bar:focus { border-color: var(--accent-blue); }
+    .search-input:focus { border-color: var(--accent-blue); }
 
-    /* Auto Column Sizing - Fits 100% Screen */
+    /* Auto Column Sizing */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
-      table-layout: auto;
+      font-size: 12.5px;
+      table-layout: fixed; /* Column width control */
     }
 
     th {
       background: #111827;
       color: #93c5fd;
-      padding: 12px 14px;
+      padding: 10px 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-size: 11.5px;
+      font-size: 11px;
+      letter-spacing: 0.4px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       text-align: left;
     }
 
     td {
-      padding: 10px 14px;
+      padding: 8px 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       color: #e2e8f0;
-      word-break: break-word;
       vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    tbody tr:first-child {
-      background: rgba(56, 189, 248, 0.08);
-      font-weight: 600;
-      border-left: 4px solid var(--accent-blue);
-    }
+    /* Fixed Column Widths for Single Screen Fit */
+    th:nth-child(1), td:nth-child(1) { width: 9%; }   /* ASIN */
+    th:nth-child(2), td:nth-child(2) { width: 33%; white-space: normal; line-height: 1.25; font-size: 12px; } /* Product Title */
+    th:nth-child(3), td:nth-child(3) { width: 7%; text-align: right; }  /* Price */
+    th:nth-child(4), td:nth-child(4) { width: 9%; text-align: center; } /* Live Status */
+    th:nth-child(5), td:nth-child(5) { width: 14%; font-size: 11.5px; } /* First Seen */
+    th:nth-child(6), td:nth-child(6) { width: 14%; font-size: 11.5px; } /* Gone Time */
+    th:nth-child(7), td:nth-child(7) { width: 7%; text-align: center; } /* Stay Duration */
+    th:nth-child(8), td:nth-child(8) { width: 7%; text-align: center; } /* Amazon Link */
 
-    tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+    tr:hover td { background: rgba(255, 255, 255, 0.035); }
 
-    .chip {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 5px;
+    /* Custom Badges */
+    .badge-asin {
+      font-family: monospace;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: #f1f5f9;
       font-weight: 700;
-      font-size: 12px;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-blue);
+      font-size: 11px;
     }
 
-    .chip-time {
+    .badge-price {
+      font-weight: 800;
+      color: #facc15;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .status-active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .status-gone {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-duration {
       background: rgba(192, 132, 252, 0.15);
       color: var(--neon-purple);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 11px;
     }
+
+    .btn-amazon {
+      display: inline-block;
+      background: #f59e0b;
+      color: #000;
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 10.5px;
+      transition: opacity 0.2s;
+    }
+    .btn-amazon:hover { opacity: 0.85; }
 
     @media (max-width: 900px) {
       .hero-grid { grid-template-columns: 1fr; }
-      .count-display { font-size: 38px; }
-      .time-display { font-size: 26px; }
+      table { table-layout: auto; font-size: 11.5px; }
     }
   </style>
 </head>
@@ -213,15 +259,15 @@
   <div class="hero-grid">
     
     <div class="hero-card count-card">
-      <div class="card-label">📦 Total Active Product (Sheet Value)</div>
-      <div class="count-display" id="totalCount">--</div>
-      <div class="sub-note">Live value from Google Sheet</div>
+      <div class="card-label">🟢 Total Active Products</div>
+      <div class="count-display" id="totalActiveCount">--</div>
+      <div class="sub-note">Live from Sheet Cell B1</div>
     </div>
 
     <div class="hero-card time-card">
-      <div class="card-label">⏱️ Last Sync Time (Sheet Value)</div>
-      <div class="time-display" id="lastSyncTime">--:--:--</div>
-      <div class="sub-note">Latest timestamp logged in sheet</div>
+      <div class="card-label">🕒 Last Synced Time</div>
+      <div class="time-display" id="lastSyncedTime">--:--:--</div>
+      <div class="sub-note">Live from Sheet Cell D1</div>
     </div>
 
     <div class="hero-card status-area">
@@ -230,23 +276,34 @@
         LIVE SYNC (1.5s)
       </div>
       <div style="text-align: right;">
-        <div style="font-size: 11px; color: var(--text-muted); font-weight: 700;">BROWSER CLOCK</div>
+        <div style="font-size: 10px; color: var(--text-muted); font-weight: 700;">BROWSER CLOCK</div>
         <div id="liveClock" style="font-size: 16px; font-weight: 800; color: #ffffff;">--:--:--</div>
       </div>
     </div>
 
   </div>
 
-  <div class="table-container">
-    <div class="table-header-bar">
-      <div style="font-size: 13.5px; font-weight: 700; color: #e2e8f0;">⚡ Live Product Records (Top = Latest)</div>
-      <input type="text" id="searchBox" class="search-bar" placeholder="🔍 Search records..." onkeyup="filterRows()">
+  <div class="table-card">
+    <div class="table-top">
+      <div style="font-size: 13px; font-weight: 700; color: #e2e8f0;">📦 Live Products Feed (<span id="totalVisibleCount">0</span> items)</div>
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search ASIN, Title, Status..." onkeyup="filterRows()">
     </div>
 
-    <table id="mainTable">
-      <thead id="tblHead"></thead>
-      <tbody id="tblBody">
-        <tr><td colspan="10" style="text-align: center; padding: 25px; color: var(--text-muted);">Connecting to Sheet Data...</td></tr>
+    <table>
+      <thead>
+        <tr>
+          <th>ASIN</th>
+          <th>Product Title</th>
+          <th style="text-align: right;">Price</th>
+          <th style="text-align: center;">Live Status</th>
+          <th>First Seen (Aaya Kab)</th>
+          <th>Gone Time (Gaya Kab)</th>
+          <th style="text-align: center;">Duration</th>
+          <th style="text-align: center;">Link</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody">
+        <tr><td colspan="8" style="text-align: center; padding: 25px; color: var(--text-muted);">Connecting to Sheet Data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -254,135 +311,108 @@
 </div>
 
 <script>
-  // Sheet ID direct live endpoint (No caching delay)
   const SHEET_ID = "1nzoYDw45bUiZ5dD-q6n78NNpsLufNUDBkgKOQPAAh-M";
   const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-  let cachedHeaders = [];
-  let cachedRows = [];
+  let cachedProducts = [];
 
   // Browser Clock
   setInterval(() => {
     document.getElementById("liveClock").innerText = new Date().toLocaleTimeString();
   }, 1000);
 
-  // Live Sheet Data Fetcher
-  async function fetchLiveFeed() {
+  // Live Sheet Data Fetch
+  async function fetchLiveData() {
     try {
       const res = await fetch(`${GVIZ_URL}&t=${Date.now()}`);
       const text = await res.text();
       const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+      const rawRows = json.table.rows;
 
-      // Extract Headers and Matrix Rows
-      const cols = json.table.cols.map(c => c ? c.label || "" : "");
-      const rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.f ? cell.f : cell.v) : ""));
+      if (!rawRows || rawRows.length < 2) return;
 
-      cachedHeaders = cols;
-      cachedRows = rows;
-      renderDashboard(cols, rows);
+      // 1. Row 1 se exact B1 aur D1 values nikalo
+      const row1 = rawRows[0].c;
+      const totalActive = row1[1] ? (row1[1].f || row1[1].v) : "--"; // Cell B1
+      const lastSynced = row1[3] ? (row1[3].f || row1[3].v) : (row1[4] ? (row1[4].f || row1[4].v) : "--"); // Cell D1 / E1
+
+      document.getElementById("totalActiveCount").innerText = totalActive;
+      document.getElementById("lastSyncedTime").innerText = lastSynced;
+
+      // 2. Row 3 se aage ka Product Data nikalo (Index 2 onwards)
+      const products = [];
+      for (let i = 2; i < rawRows.length; i++) {
+        const c = rawRows[i].c;
+        if (!c || !c[0]) continue; // Blank row skip
+        
+        products.push({
+          asin: c[0] ? (c[0].f || c[0].v || "") : "",
+          title: c[1] ? (c[1].f || c[1].v || "") : "",
+          price: c[2] ? (c[2].f || c[2].v || "") : "",
+          status: c[3] ? (c[3].f || c[3].v || "") : "",
+          firstSeen: c[4] ? (c[4].f || c[4].v || "") : "",
+          goneTime: c[5] ? (c[5].f || c[5].v || "—") : "—",
+          duration: c[6] ? (c[6].f || c[6].v || "—") : "—",
+          link: c[7] ? (c[7].f || c[7].v || "") : ""
+        });
+      }
+
+      cachedProducts = products;
+      renderTable(products);
     } catch (err) {
       console.warn("Live fetch error, retrying...", err);
     }
   }
 
-  function renderDashboard(headers, rows) {
-    if (!rows || rows.length === 0) return;
+  function renderTable(products) {
+    const tbody = document.getElementById("productTableBody");
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    let html = "";
+    let visibleCount = 0;
 
-    let totalActiveVal = null;
-    let lastSyncVal = null;
+    products.forEach(p => {
+      // Search Match
+      const matches = p.asin.toLowerCase().includes(query) ||
+                      p.title.toLowerCase().includes(query) ||
+                      p.status.toLowerCase().includes(query);
 
-    // 1. JSON में से "Active Product" और "Sync Time" को मैप करें
-    headers.forEach((h, colIdx) => {
-      const head = String(h).toLowerCase().trim();
-      
-      if (head.includes("active") || head.includes("total") || head.includes("count") || head.includes("product")) {
-        // अगर कॉलम में ऊपर या नीचे वैल्यू है तो उसे पिक करें
-        for (let r = rows.length - 1; r >= 0; r--) {
-          if (rows[r][colIdx] !== "" && rows[r][colIdx] !== null && rows[r][colIdx] !== undefined) {
-            totalActiveVal = rows[r][colIdx];
-            break;
-          }
-        }
-      }
+      if (matches) {
+        visibleCount++;
+        
+        // Status Badge Styling
+        const isLive = p.status.toUpperCase().includes("ACTIVE");
+        const statusClass = isLive ? "status-active" : "status-gone";
+        const statusIcon = isLive ? "🟢" : "🔴";
 
-      if (head.includes("sync") || head.includes("time") || head.includes("date") || head.includes("timestamp")) {
-        for (let r = rows.length - 1; r >= 0; r--) {
-          if (rows[r][colIdx] !== "" && rows[r][colIdx] !== null && rows[r][colIdx] !== undefined) {
-            lastSyncVal = rows[r][colIdx];
-            break;
-          }
-        }
+        // Amazon Button Link
+        const linkBtn = p.link ? `<a href="${p.link}" target="_blank" class="btn-amazon">Buy ↗</a>` : "—";
+
+        html += `
+          <tr>
+            <td><span class="badge-asin">${p.asin}</span></td>
+            <td title="${p.title}">${p.title}</td>
+            <td style="text-align: right;"><span class="badge-price">₹${p.price}</span></td>
+            <td style="text-align: center;"><span class="badge-status ${statusClass}">${statusIcon} ${isLive ? 'ACTIVE' : 'GONE'}</span></td>
+            <td style="color: #94a3b8;">${p.firstSeen}</td>
+            <td style="color: #94a3b8;">${p.goneTime}</td>
+            <td style="text-align: center;"><span class="badge-duration">${p.duration}</span></td>
+            <td style="text-align: center;">${linkBtn}</td>
+          </tr>
+        `;
       }
     });
 
-    // Fallback: अगर हेडर मैच नहीं हुआ तो लास्ट रो से वैल्यू निकालें
-    if (totalActiveVal === null) {
-      totalActiveVal = rows[rows.length - 1][0] || rows.length;
-    }
-    if (lastSyncVal === null) {
-      const lastRow = rows[rows.length - 1];
-      for (let item of lastRow) {
-        if (String(item).includes(":") || String(item).toLowerCase().includes("am") || String(item).toLowerCase().includes("pm")) {
-          lastSyncVal = item;
-          break;
-        }
-      }
-    }
-
-    // 2. UI पर सेट करें
-    document.getElementById("totalCount").innerText = totalActiveVal;
-    if (lastSyncVal) {
-      document.getElementById("lastSyncTime").innerText = lastSyncVal;
-    }
-
-    // 3. Screen-fit Table Render (Newest Row on Top)
-    renderTable(headers, rows);
-  }
-
-  function renderTable(headers, rows) {
-    const thead = document.getElementById("tblHead");
-    const tbody = document.getElementById("tblBody");
-
-    if (thead.innerHTML === "") {
-      let hHtml = "<tr>";
-      headers.forEach(h => hHtml += `<th>${h || '-'}</th>`);
-      hHtml += "</tr>";
-      thead.innerHTML = hHtml;
-    }
-
-    const query = document.getElementById("searchBox").value.toLowerCase();
-    let bHtml = "";
-
-    // Newest record sabse upar
-    for (let r = rows.length - 1; r >= 0; r--) {
-      const row = rows[r];
-      if (row.some(cell => String(cell).toLowerCase().includes(query))) {
-        bHtml += "<tr>";
-        row.forEach(cell => {
-          let val = cell !== null && cell !== undefined ? cell : "";
-          
-          if (String(val).includes(":") && (String(val).includes("AM") || String(val).includes("PM") || String(val).length <= 12)) {
-            val = `<span class="chip chip-time">⏱️ ${val}</span>`;
-          } else if (typeof val === 'number') {
-            val = `<span class="chip">${val}</span>`;
-          }
-          bHtml += `<td>${val}</td>`;
-        });
-        bHtml += "</tr>";
-      }
-    }
-    tbody.innerHTML = bHtml;
+    tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center; padding:20px; color:#94a3b8;">No matching records found.</td></tr>';
+    document.getElementById("totalVisibleCount").innerText = visibleCount;
   }
 
   function filterRows() {
-    if (cachedRows.length > 0) {
-      renderTable(cachedHeaders, cachedRows);
-    }
+    renderTable(cachedProducts);
   }
 
-  // Initial Fetch & 1.5s continuous live update
-  fetchLiveFeed();
-  setInterval(fetchLiveFeed, 1500);
+  // Initial Fetch & 1.5s continuous live polling
+  fetchLiveData();
+  setInterval(fetchLiveData, 1500);
 </script>
 
 </body>
